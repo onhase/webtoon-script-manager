@@ -13,18 +13,15 @@
         :root { 
             --base-color: #5b79ef; 
             --text-on-base: #ffffff;
-            /* 💡 농도를 18%로 올려서 확실하게 보이는 예쁜 그라데이션 적용 */
             --gradient-bg: linear-gradient(180deg, rgba(91, 121, 239, 0.18) 0%, rgba(91, 121, 239, 0.02) 100%);
             --main-bg: transparent; 
             --block-bg: #ffffff; 
             --border: #dcdfe3; 
             --text-main: #333333;
-            /* 💡 본문 폰트 설정 (인터페이스와 분리) */
             --body-font-size: 16px;
             --body-font-family: 'Pretendard', sans-serif;
         }
         
-        /* 💡 background-image로 그라데이션을 씌우고, 밑바탕에 은은한 쿨그레이를 깔아줌 */
         body { font-family: 'Pretendard', sans-serif; margin: 0; background-color: #f4f6f9; background-image: var(--gradient-bg); background-attachment: fixed; overflow: hidden; height: 100vh; display: flex; flex-direction: column; color: var(--text-main); }
         
         .top-nav { background: var(--base-color); color: var(--text-on-base); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); z-index: 10; transition: 0.3s background; }
@@ -115,7 +112,6 @@
         .del-dialog-btn { color: #d9534f; margin-left: 8px; font-size: 0.8rem; cursor: pointer; transition: 0.2s; padding: 0 3px; }
         .del-dialog-btn:hover { transform: scale(1.2); }
 
-        /* 💡 본문 폰트 독립 선언 (레이아웃 파괴 방지) */
         .main-editor textarea, .space-input {
             font-size: var(--body-font-size);
             font-family: var(--body-font-family);
@@ -137,8 +133,6 @@
         .memo-drag-area:hover { background: #e9ecef; }
         .memo-drag-area:active { cursor: grabbing; background: var(--base-color); }
         .memo-content { flex: 1; padding: 8px; position: relative; display: flex; flex-direction: column; width: calc(100% - 14px); box-sizing: border-box; }
-        
-        /* 💡 메모장 본문 폰트도 같이 적용 */
         .memo-textarea { font-size: var(--body-font-size); font-family: var(--body-font-family); width: 100%; flex: 1; min-height: 50px; border: none; resize: none; outline: none; color: inherit; box-sizing: border-box; overflow-y: auto; overflow-x: hidden; line-height: 1.5; }
         .memo-opt-btn { position: absolute; top: 4px; right: 6px; cursor: pointer; font-size: 0.9rem; color: #ccc; transition: 0.2s; z-index: 5; }
         .memo-opt-btn:hover { color: var(--base-color); }
@@ -172,6 +166,16 @@
         .modal-btns button:hover { background: #f8f9fa; border-color: #bbb; }
         .modal-btns button.primary-btn { background: var(--base-color); color: var(--text-on-base); border: none; }
         .modal-btns button.primary-btn:hover { opacity: 0.9; }
+
+        /* 💡 사용법(도움말) 모달 디자인 추가 */
+        #help-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2100; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
+        .help-content { background: white; padding: 30px; border-radius: 12px; width: 450px; max-width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); line-height: 1.6; font-size: 0.9rem; color: #444; }
+        .help-content h3 { margin-top: 0; color: var(--base-color); border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.2rem; }
+        .help-content ul { padding-left: 20px; margin: 15px 0; }
+        .help-content li { margin-bottom: 12px; }
+        .help-content kbd { background: #f8f9fa; border: 1px solid #ccc; border-radius: 4px; padding: 2px 6px; font-family: monospace; font-size: 0.8rem; font-weight: bold; color: #333; }
+        .help-close-btn { width: 100%; padding: 10px; cursor: pointer; border: 1px solid #ddd; background: #f8f9fa; border-radius: 5px; font-weight: bold; margin-top: 10px; transition: 0.2s; }
+        .help-close-btn:hover { background: #e9ecef; }
     </style>
 </head>
 <body>
@@ -259,10 +263,30 @@
         </div>
         <hr style="border:0; border-top:1px solid #eee; margin: 15px 0;">
         <div class="modal-btns">
+            <button onclick="toggleHelp()" style="color:#28a745; border-color:#c3e6cb; background:#f0f9f4;">📖 사용하는 법 (도움말)</button>
             <button class="primary-btn" onclick="saveFile(true); toggleSettings();">다른 이름으로 저장 (Ctrl+Shift+S)</button>
             <button onclick="createNewProject()" style="color:#5b79ef; border-color:#d4dcff; background:#f4f7ff;">새 글콘티 만들기</button>
             <button onclick="toggleSettings()" style="background:#f8f9fa; border:none; color:#555;">닫기</button>
         </div>
+    </div>
+</div>
+
+<div id="help-modal">
+    <div class="help-content">
+        <h3>📖 Webtoon Script Manager 사용법</h3>
+        <ul>
+            <li><kbd>Ctrl</kbd> + <kbd>S</kbd> : 저장<br><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd> : 다른 이름으로 저장</li>
+            <li><kbd>Shift</kbd> + <kbd>Enter</kbd> : 아래에 새 컷 추가 (기존 Ctrl+Enter 대신 안전한 Shift+Enter 탑재)</li>
+            <li><kbd>Ctrl</kbd> + <kbd>방향키</kbd> : 방향으로 셀 이동</li>
+            <li><strong>컷 넘버</strong>를 클릭하여 컷을 이동(드래그), 삭제, 추가할 수 있습니다.</li>
+            <li><strong>컷 넘버</strong>를 클릭하여 스크롤 연출용 &lt;여백&gt;이나 &lt;대사만&gt; 블럭을 추가할 수 있습니다.</li>
+            <li>가로 모드 우측, 세로 모드 상단에 <strong>참고 메모</strong>를 넣을 수 있습니다.</li>
+            <li>창의 가로세로 비율에 따라 <strong>가로 모드, 세로 모드</strong>로 자동 변환됩니다. 가로 모드에서는 참고를 닫을 수 있습니다.</li>
+            <li>대사칸 <strong>상단(대사 N)</strong>을 클릭하면 대사가 바로 복사되어 원고에 편하게 붙여넣기 할 수 있습니다.</li>
+            <li>우측 상단의 <strong>톱니바퀴(⚙️)</strong>를 눌러 테마 색상, 폰트, 글자 크기를 조절할 수 있습니다.</li>
+            <li>상단의 <strong>에피소드 폴더와 시트(탭)</strong>를 이용하여 여러 화를 한 번에 관리해 보세요.</li>
+        </ul>
+        <button class="help-close-btn" onclick="toggleHelp()">확인 (닫기)</button>
     </div>
 </div>
 
@@ -293,7 +317,6 @@
         return (yiq >= 150) ? '#333333' : '#ffffff';
     }
 
-    // 💡 테마 색상을 추출해서 은은한 그라데이션으로 변환
     function hexToRgba(hex, alpha) {
         let r = 0, g = 0, b = 0;
         if (hex.length == 4) { r = parseInt(hex[1]+hex[1], 16); g = parseInt(hex[2]+hex[2], 16); b = parseInt(hex[3]+hex[3], 16); } 
@@ -305,8 +328,6 @@
         document.documentElement.style.setProperty('--base-color', color);
         const textColor = getContrastYIQ(color);
         document.documentElement.style.setProperty('--text-on-base', textColor);
-        
-        // 💡 농도 18%로 더욱 화사하고 명확한 세로 그라데이션 적용!
         document.documentElement.style.setProperty('--gradient-bg', `linear-gradient(180deg, ${hexToRgba(color, 0.18)} 0%, ${hexToRgba(color, 0.02)} 100%)`);
         
         document.getElementById('theme-color').value = color;
@@ -316,10 +337,22 @@
     function updateStyles() {
         const size = document.getElementById('font-size').value;
         const font = document.getElementById('font-family').value;
-        // 💡 본문 텍스트에만 적용되도록 CSS 변수 제어
         document.documentElement.style.setProperty('--body-font-size', size + 'px');
         document.documentElement.style.setProperty('--body-font-family', font);
         saveLocal();
+    }
+
+    // 💡 도움말 모달 토글 함수
+    function toggleHelp() {
+        const m = document.getElementById('help-modal');
+        m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+        // 도움말을 켤 때 설정창은 닫아줌
+        document.getElementById('settings-modal').style.display = 'none';
+    }
+
+    function toggleSettings() { 
+        const m = document.getElementById('settings-modal'); 
+        m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; 
     }
 
     function init() {
@@ -344,7 +377,6 @@
 
         let localData = localStorage.getItem(STORAGE_KEY);
         
-        // 💡 긴급 복구: 배열 형식 파싱 오류 방지 및 구버전 데이터 호환 완벽 보장
         if (embeddedState) {
             folders = embeddedState.folders;
             document.getElementById('work-title').value = embeddedState.title || "신규 작품명";
@@ -355,7 +387,6 @@
             document.getElementById('font-family').value = embeddedState.fontFamily || "'Pretendard', sans-serif";
         } else if (localData && localData.length > 0 && !isNewRequest) {
             let parsedData = JSON.parse(localData);
-            // 구버전(v3, v4)의 '에피소드 배열'만 있는 형태를 마주쳤을 때 뻗지 않도록 폴더 껍데기 씌워주기
             if (Array.isArray(parsedData) && parsedData.length > 0 && !parsedData[0].episodes) {
                 folders = [{ id: 'f_default', title: "기본 폴더", collapsed: false, episodes: parsedData }];
             } else {
@@ -374,7 +405,6 @@
             for(let i=0; i<30; i++) folders[0].episodes[0].cuts.push({type: "cut", scene: "", dialogs: [""]});
         }
 
-        // 혹시라도 컷 배열(cuts)이 날아가 있거나, dialogs 속성이 꼬여 있으면 완벽하게 고쳐주는 방어 로직
         folders.forEach(f => {
             if(!f.episodes) return;
             f.episodes.forEach(ep => {
@@ -603,7 +633,6 @@
     function toggleMemo() { const sideNotes = document.getElementById('side-notes'); const header = document.getElementById('side-notes-toggle'); sideNotes.classList.toggle('collapsed'); header.innerText = sideNotes.classList.contains('collapsed') ? '▲ 참고 열기' : '▼ 참고 닫기'; }
     function initResizer() { const resizer = document.getElementById('resizer'); const sideNotes = document.getElementById('side-notes'); let isResizing = false; let lastY = 0; resizer.addEventListener('mousedown', (e) => { isResizing = true; lastY = e.clientY; document.body.style.cursor = 'row-resize'; e.preventDefault(); }); document.addEventListener('mousemove', (e) => { if (!isResizing) return; const dy = e.clientY - lastY; lastY = e.clientY; sideNotes.style.height = `${sideNotes.offsetHeight + dy}px`; }); document.addEventListener('mouseup', () => { if(isResizing) { isResizing = false; document.body.style.cursor = 'default'; } }); resizer.addEventListener('touchstart', (e) => { isResizing = true; lastY = e.touches[0].clientY; }, {passive: true}); document.addEventListener('touchmove', (e) => { if (!isResizing) return; const dy = e.touches[0].clientY - lastY; lastY = e.touches[0].clientY; sideNotes.style.height = `${sideNotes.offsetHeight + dy}px`; }, {passive: true}); document.addEventListener('touchend', () => isResizing = false); }
     function showToast(msg) { const toast = document.getElementById('toast'); toast.innerText = msg; toast.style.opacity = '1'; setTimeout(() => { toast.style.opacity = '0'; }, 1000); }
-    function toggleSettings() { const m = document.getElementById('settings-modal'); m.style.display = (m.style.display === 'flex') ? 'none' : 'flex'; }
     
     function renderTabs() {
         const tabBar = document.getElementById('tab-bar'); tabBar.innerHTML = '';
