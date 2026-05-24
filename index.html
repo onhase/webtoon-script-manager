@@ -22,14 +22,7 @@
             --body-font-family: 'Pretendard', sans-serif;
         }
         
-body { 
-    font-family: 'Pretendard', sans-serif; margin: 0; background-color: #f4f6f9; background-image: var(--gradient-bg); background-attachment: fixed; overflow: hidden; 
-    height: 100dvh; /* 💡 모바일 주소창 크기를 자동 계산하는 dvh로 변경! */
-    display: flex; flex-direction: column; color: var(--text-main); 
-}
-
-/* 💡 모바일에서 맨 아래 컷이 가려지지 않도록 여백 추가 */
-.cut-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 120px; }
+        body { font-family: 'Pretendard', sans-serif; margin: 0; background-color: #f4f6f9; background-image: var(--gradient-bg); background-attachment: fixed; overflow: hidden; height: 100dvh; display: flex; flex-direction: column; color: var(--text-main); }
         
         .top-nav { background: var(--base-color); color: var(--text-on-base); padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.1); z-index: 10; transition: 0.3s background; }
         .work-title { font-size: 1.15rem; font-weight: 700; cursor: pointer; border: none; background: transparent; color: var(--text-on-base); outline: none; width: 300px; border-bottom: 1px dashed transparent; transition: 0.2s; font-family: 'Pretendard', sans-serif; }
@@ -83,7 +76,7 @@ body {
         .summary-title { background: rgba(0,0,0,0.02); padding: 8px 12px; font-weight: bold; border-bottom: 1px solid var(--border); font-size: 0.8rem; color: #555; }
         .summary-box textarea { width: 100%; border: none; min-height: 45px; padding: 10px 12px; resize: none; outline: none; box-sizing: border-box; background: transparent; overflow: hidden; }
 
-        .cut-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 60px; }
+        .cut-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 120px; }
         
         .cut-item { display: grid; grid-template-columns: 45px 1fr 1.2fr; background: var(--block-bg); border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.03); overflow: hidden; transition: box-shadow 0.2s; }
         .cut-item:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
@@ -174,7 +167,6 @@ body {
         .modal-btns button.primary-btn { background: var(--base-color); color: var(--text-on-base); border: none; }
         .modal-btns button.primary-btn:hover { opacity: 0.9; }
 
-        /* 💡 사용법(도움말) 모달 디자인 추가 */
         #help-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2100; justify-content: center; align-items: center; backdrop-filter: blur(2px); }
         .help-content { background: white; padding: 30px; border-radius: 12px; width: 450px; max-width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); line-height: 1.6; font-size: 0.9rem; color: #444; }
         .help-content h3 { margin-top: 0; color: var(--base-color); border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.2rem; }
@@ -314,6 +306,17 @@ body {
     let sortableCutInstance = null;
     let sortableEpInstances = []; 
 
+    // 💡 HTML 특수기호 이스케이프 함수 (글자 증발 완벽 차단)
+    function escapeHTML(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function getContrastYIQ(hexcolor){
         hexcolor = hexcolor.replace("#", "");
         if (hexcolor.length === 3) hexcolor = hexcolor.split('').map(c => c + c).join('');
@@ -349,11 +352,9 @@ body {
         saveLocal();
     }
 
-    // 💡 도움말 모달 토글 함수
     function toggleHelp() {
         const m = document.getElementById('help-modal');
         m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
-        // 도움말을 켤 때 설정창은 닫아줌
         document.getElementById('settings-modal').style.display = 'none';
     }
 
@@ -672,6 +673,7 @@ body {
     function openNavMenu(e, type, fIdx, eIdx) { targetNav = { type, fIdx, eIdx }; const menu = document.getElementById('nav-menu'); document.getElementById('nav-copy-btn').style.display = (type === 'folder') ? 'none' : 'block'; menu.style.display = 'flex'; menu.style.top = `${e.clientY + 10}px`; menu.style.left = `${e.clientX - 10}px`; }
     function actionNav(action) { closeMenu('nav-menu'); const { type, fIdx, eIdx } = targetNav; if (action === 'delete') { if (type === 'folder') { if (folders.length <= 1) { showToast("최소 1개의 폴더는 유지해야 합니다."); return; } if (confirm(`폴더를 삭제하시겠습니까?`)) { folders.splice(fIdx, 1); curFIdx = Math.min(curFIdx, folders.length - 1); curEIdx = 0; saveLocal(); renderTabs(); renderCurrentEpisode(); } } else if (type === 'episode') { if (folders.reduce((sum, f) => sum + f.episodes.length, 0) <= 1) { showToast("최소 1개의 화는 유지해야 합니다."); return; } if (confirm(`삭제하시겠습니까?`)) { folders[fIdx].episodes.splice(eIdx, 1); if (fIdx === curFIdx) { if (folders[fIdx].episodes.length === 0) { curFIdx = folders.findIndex(f => f.episodes.length > 0); curEIdx = 0; } else { curEIdx = Math.min(curEIdx, folders[fIdx].episodes.length - 1); } } saveLocal(); renderTabs(); renderCurrentEpisode(); } } } else if (action === 'copy' && type === 'episode') { const copy = { ...folders[fIdx].episodes[eIdx], title: folders[fIdx].episodes[eIdx].title + " (복사본)", cuts: JSON.parse(JSON.stringify(folders[fIdx].episodes[eIdx].cuts)), memos: JSON.parse(JSON.stringify(folders[fIdx].episodes[eIdx].memos)) }; folders[fIdx].episodes.splice(eIdx + 1, 0, copy); if (fIdx === curFIdx) curEIdx = eIdx + 1; saveLocal(); renderTabs(); renderCurrentEpisode(); showToast("복사되었습니다."); } }
     
+    // 💡 렌더링 시 escapeHTML 적용 완료
     function renderCurrentEpisode() {
         if (!folders[curFIdx] || !folders[curFIdx].episodes[curEIdx]) return;
         const ep = folders[curFIdx].episodes[curEIdx];
@@ -687,7 +689,7 @@ body {
                 item.innerHTML = `
                     <div class="cut-no" onclick="openCutMenu(event, ${idx})">-</div>
                     <div class="space-cell">
-                        <div class="space-input" contenteditable="true" placeholder="여백 메모를 적으세요 (선택)" oninput="updateCut(${idx}, 'text', this.innerText)">${cut.text || ''}</div>
+                        <div class="space-input" contenteditable="true" placeholder="여백 메모를 적으세요 (선택)" oninput="updateCut(${idx}, 'text', this.innerText)">${escapeHTML(cut.text || '')}</div>
                     </div>
                 `;
             } else if (cut.type === 'dialog_only') {
@@ -705,7 +707,7 @@ body {
                                             ${cut.dialogs.length > 1 ? `<span class="del-dialog-btn" onclick="event.stopPropagation(); removeDialogField(${idx}, ${dIdx})">✖</span>` : ''}
                                         </div>
                                     </div>
-                                    <textarea data-cut="${idx}" data-col="1" data-sub="${dIdx}" oninput="autoResize(this); updateDialog(${idx}, ${dIdx}, this.value)" placeholder="대사 입력...">${d}</textarea>
+                                    <textarea data-cut="${idx}" data-col="1" data-sub="${dIdx}" oninput="autoResize(this); updateDialog(${idx}, ${dIdx}, this.value)" placeholder="대사 입력...">${escapeHTML(d)}</textarea>
                                 </div>
                             `).join('')}
                         </div>
@@ -717,7 +719,7 @@ body {
                     <div class="cut-no" onclick="openCutMenu(event, ${idx})" title="옵션 열기">${actualCutCount++}</div>
                     <div class="cell">
                         <div class="col-header" style="cursor:default;"><span>장면</span></div>
-                        <textarea data-cut="${idx}" data-col="0" data-sub="0" oninput="autoResize(this); updateCut(${idx}, 'scene', this.value)" placeholder="장면 묘사...">${cut.scene || ''}</textarea>
+                        <textarea data-cut="${idx}" data-col="0" data-sub="0" oninput="autoResize(this); updateCut(${idx}, 'scene', this.value)" placeholder="장면 묘사...">${escapeHTML(cut.scene || '')}</textarea>
                     </div>
                     <div class="cell" style="border:none;">
                         <div class="dialogs-container">
@@ -730,7 +732,7 @@ body {
                                             ${cut.dialogs.length > 1 ? `<span class="del-dialog-btn" onclick="event.stopPropagation(); removeDialogField(${idx}, ${dIdx})">✖</span>` : ''}
                                         </div>
                                     </div>
-                                    <textarea data-cut="${idx}" data-col="1" data-sub="${dIdx}" oninput="autoResize(this); updateDialog(${idx}, ${dIdx}, this.value)" placeholder="대사 입력...">${d}</textarea>
+                                    <textarea data-cut="${idx}" data-col="1" data-sub="${dIdx}" oninput="autoResize(this); updateDialog(${idx}, ${dIdx}, this.value)" placeholder="대사 입력...">${escapeHTML(d)}</textarea>
                                 </div>
                             `).join('')}
                         </div>
@@ -764,7 +766,7 @@ body {
     
     function addMemo() { folders[curFIdx].episodes[curEIdx].memos.push({ title: "memo", content: "", x: 20, y: 80, width: null, height: null }); saveLocal(); renderMemos(); setTimeout(() => { document.querySelectorAll('.memo-wrapper textarea').forEach(ta => autoResize(ta)); }, 10); }
     function saveMemoSize(idx, el) { if (el.style.width || el.style.height) { folders[curFIdx].episodes[curEIdx].memos[idx].width = parseInt(el.style.width, 10); folders[curFIdx].episodes[curEIdx].memos[idx].height = parseInt(el.style.height, 10); saveLocal(); } }
-    function renderMemos() { const container = document.getElementById('memo-container'); container.innerHTML = ''; folders[curFIdx].episodes[curEIdx].memos.forEach((m, idx) => { const div = document.createElement('div'); div.className = 'memo-wrapper'; div.dataset.index = idx; div.style.left = `${m.x}px`; div.style.top = `${m.y}px`; const sizeStyle = (m.width && m.height) ? `style="width:${m.width}px; height:${m.height}px;"` : ''; div.innerHTML = `<div class="memo-tab" contenteditable="true" oninput="folders[${curFIdx}].episodes[${curEIdx}].memos[${idx}].title=this.innerText; saveLocal();">${m.title}</div><div class="memo-body" onmouseup="saveMemoSize(${idx}, this)" ${sizeStyle}><div class="memo-drag-area" onmousedown="startDragMemo(event, ${idx})"></div><div class="memo-content"><div class="memo-opt-btn" onclick="openMemoMenu(event, ${idx})">★</div><textarea class="memo-textarea" placeholder="내용" oninput="autoResize(this); folders[${curFIdx}].episodes[${curEIdx}].memos[${idx}].content=this.value; saveLocal();">${m.content}</textarea></div></div>`; container.appendChild(div); }); }
+    function renderMemos() { const container = document.getElementById('memo-container'); container.innerHTML = ''; folders[curFIdx].episodes[curEIdx].memos.forEach((m, idx) => { const div = document.createElement('div'); div.className = 'memo-wrapper'; div.dataset.index = idx; div.style.left = `${m.x}px`; div.style.top = `${m.y}px`; const sizeStyle = (m.width && m.height) ? `style="width:${m.width}px; height:${m.height}px;"` : ''; div.innerHTML = `<div class="memo-tab" contenteditable="true" oninput="folders[${curFIdx}].episodes[${curEIdx}].memos[${idx}].title=this.innerText; saveLocal();">${escapeHTML(m.title)}</div><div class="memo-body" onmouseup="saveMemoSize(${idx}, this)" ${sizeStyle}><div class="memo-drag-area" onmousedown="startDragMemo(event, ${idx})"></div><div class="memo-content"><div class="memo-opt-btn" onclick="openMemoMenu(event, ${idx})">★</div><textarea class="memo-textarea" placeholder="내용" oninput="autoResize(this); folders[${curFIdx}].episodes[${curEIdx}].memos[${idx}].content=this.value; saveLocal();">${escapeHTML(m.content)}</textarea></div></div>`; container.appendChild(div); }); }
     function startDragMemo(e, idx) { const el = document.querySelector(`.memo-wrapper[data-index="${idx}"]`); const startX = e.clientX - el.offsetLeft; const startY = e.clientY - el.offsetTop; const container = document.querySelector('.side-notes-inner'); function move(e) { let x = Math.max(5, Math.min(e.clientX - startX, container.offsetWidth - el.offsetWidth - 5)); el.style.left = `${x}px`; el.style.top = `${e.clientY - startY}px`; folders[curFIdx].episodes[curEIdx].memos[idx].x = x; folders[curFIdx].episodes[curEIdx].memos[idx].y = e.clientY - startY; } function stop() { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', stop); saveLocal(); } document.addEventListener('mousemove', move); document.addEventListener('mouseup', stop); }
     function openMemoMenu(e, idx) { targetMemoIdx = idx; const menu = document.getElementById('memo-menu'); menu.style.display = 'flex'; menu.style.top = `${e.clientY + 10}px`; menu.style.left = `${e.clientX - 10}px`; }
     function actionMemo(action) { closeMenu('memo-menu'); const memos = folders[curFIdx].episodes[curEIdx].memos; if (action === 'delete') { memos.splice(targetMemoIdx, 1); } else if (action === 'copy') { memos.push({ ...memos[targetMemoIdx], x: memos[targetMemoIdx].x + 20, y: memos[targetMemoIdx].y + 20 }); } saveLocal(); renderMemos(); }
